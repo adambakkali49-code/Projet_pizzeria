@@ -75,3 +75,4 @@ def send_operator_mails():
         subject = "Planning opérateur"
 
         write_mail_to_file(email, subject, "\n".join(body))
+
