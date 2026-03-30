@@ -245,3 +245,29 @@ def get_etapes_for_produit(produit_nom):  # récupère les étapes d'un produit 
     etapes = cursor.fetchall()
     conn.close()
     return etapes
+
+def update_machine(old_nom, new_nom, puissance, operateur, email):
+    conn = sqlite3.connect("pizzeria.db")
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE machines
+        SET nom = ?, puissance_w = ?, operateur_nom = ?, operateur_email = ?
+        WHERE nom = ?
+        """,
+        (new_nom, puissance, operateur, email, old_nom)
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def delete_machine(nom):
+    conn = sqlite3.connect("pizzeria.db")
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM machines WHERE nom = ?", (nom,))
+
+    conn.commit()
+    conn.close()

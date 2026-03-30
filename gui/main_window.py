@@ -1,68 +1,124 @@
-from PyQt6 import QtWidgets  # j'importe PyQt
-from gui.main_window_ui import Ui_MainWindow  # j'importe l'interface générée par Qt Designer
-from database.db import get_machines, get_produits, add_machine, add_commande, get_commandes  # j'importe mes fonctions SQL
+from PyQt6 import QtWidgets
+from gui.main_window_ui import Ui_MainWindow
+from database.db import (
+    get_machines, get_produits, add_machine, add_commande,
+    get_commandes, update_machine, delete_machine
+)
 from api_electricity import plot_prices
 from cost import calculer_cout_commande
+from datetime import datetime
+from mail_fonction import send_operator_mails
+from alerte import generate_negative_price_alert_file
+from schedule_logic import command_exceeds_day
 
-class MainWindow(QtWidgets.QMainWindow):  # je crée la fenêtre principale
+
+class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.ui = Ui_MainWindow()  # je crée l'objet interface
-        self.ui.setupUi(self)  # j'applique l'interface à la fenêtre
+        self.ui = Ui_MainWindow()
+        self.ui.setupUi(self)
 
-        # je connecte les boutons de l'interface à mes fonctions Python
+        date = datetime.now().strftime("%d/%m/%Y")
+        self.ui.labelDate.setText(date)
+
         self.ui.btnRefresh.clicked.connect(self.load_data)
         self.ui.btnAddMachine.clicked.connect(self.add_machine_from_form)
         self.ui.btnAddCommande.clicked.connect(self.add_commande_from_form)
         self.ui.pushButtonPrices.clicked.connect(self.show_prices)
+        self.ui.pushButton_send_mail.clicked.connect(self.generate_mails)
+        self.ui.pushButton_negative_alert.clicked.connect(self.check_negative_prices)
+        self.ui.btnModifyMachine.clicked.connect(self.modify_machine_from_form)
+        self.ui.btnDeleteMachine.clicked.connect(self.delete_machine_from_form)
+        
+        
 
-        self.load_data()  # je charge les données au démarrage
+        self.load_data()
         self.load_produits_combo()
         self.load_commandes()
 
-    def load_data(self):  # fonction pour afficher les machines et produits
-        machines = get_machines()  # je récupère les machines depuis la base
-        produits = get_produits()  # je récupère les produits depuis la base
+    def load_data(self):
+        machines = get_machines()
+        produits = get_produits()
 
-        self.ui.textMachines.clear()  # je vide la zone machines
+        self.ui.textMachines.clear()
         for m in machines:
             nom, puissance, operateur, email = m
             self.ui.textMachines.append(
                 f"Nom: {nom} | Puissance: {puissance} W | Opérateur: {operateur} | Email: {email}"
-            )  # j'affiche chaque machine
+            )
 
-        self.ui.textProduits.clear()  # je vide la zone produits
+        self.ui.textProduits.clear()
         for p in produits:
-            self.ui.textProduits.append(p[0])  # j'affiche chaque produit
+            self.ui.textProduits.append(p[0])
 
-    def add_machine_from_form(self):  # fonction appelée quand on clique sur ajouter
-        nom = self.ui.inputNom.text().strip()  # je lis le nom
-        puissance = self.ui.inputPuissance.text().strip()  # je lis la puissance
-        operateur = self.ui.inputOperateur.text().strip()  # je lis l'opérateur
-        email = self.ui.inputEmail.text().strip()  # je lis l'email
+    def add_machine_from_form(self):
+        nom = self.ui.inputNom.text().strip()
+        puissance = self.ui.inputPuissance.text().strip()
+        operateur = self.ui.inputOperateur.text().strip()
+        email = self.ui.inputEmail.text().strip()
 
-        # je vérifie que tous les champs sont remplis
         if not nom or not puissance or not operateur or not email:
             QtWidgets.QMessageBox.warning(self, "Erreur", "Tous les champs doivent être remplis.")
             return
 
-        # je vérifie que la puissance est bien un nombre entier
         if not puissance.isdigit():
             QtWidgets.QMessageBox.warning(self, "Erreur", "La puissance doit être un nombre entier.")
             return
 
-        add_machine(nom, int(puissance), operateur, email)  # j'ajoute la machine à la base
+        add_machine(nom, int(puissance), operateur, email)
 
-        # je vide les champs après ajout
         self.ui.inputNom.clear()
         self.ui.inputPuissance.clear()
         self.ui.inputOperateur.clear()
         self.ui.inputEmail.clear()
 
-        self.load_data()  # je recharge l'affichage
-    
-    def load_produits_combo(self):  # je remplis la liste déroulante avec les produits
+        self.load_data()
+
+    def modify_machine_from_form(self):
+        old_nom = self.ui.inputNom.text().strip()
+        puissance = self.ui.inputPuissance.text().strip()
+        operateur = self.ui.inputOperateur.text().strip()
+        email = self.ui.inputEmail.text().strip()
+
+        if not old_nom or not puissance or not operateur or not email:
+            QtWidgets.QMessageBox.warning(self, "Erreur", "Tous les champs doivent être remplis.")
+            return
+
+        if not puissance.isdigit():
+            QtWidgets.QMessageBox.warning(self, "Erreur", "La puissance doit être un nombre entier.")
+            return
+
+        update_machine(old_nom, old_nom, int(puissance), operateur, email)
+
+        QtWidgets.QMessageBox.information(self, "Succès", "Machine modifiée avec succès.")
+
+        self.ui.inputNom.clear()
+        self.ui.inputPuissance.clear()
+        self.ui.inputOperateur.clear()
+        self.ui.inputEmail.clear()
+
+        self.load_data()
+
+    def delete_machine_from_form(self):
+        nom = self.ui.inputNom.text().strip()
+
+        if not nom:
+            QtWidgets.QMessageBox.warning(self, "Erreur", "Entre le nom de la machine à supprimer.")
+            return
+
+        delete_machine(nom)
+
+        QtWidgets.QMessageBox.information(self, "Succès", "Machine supprimée avec succès.")
+
+        self.ui.inputNom.clear()
+        self.ui.inputPuissance.clear()
+        self.ui.inputOperateur.clear()
+        self.ui.inputEmail.clear()
+
+        self.load_data()
+
+    def load_produits_combo(self):
         produits = get_produits()
         self.ui.comboProduit.clear()
 
@@ -73,6 +129,60 @@ class MainWindow(QtWidgets.QMainWindow):  # je crée la fenêtre principale
         produit = self.ui.comboProduit.currentText()
         quantite = self.ui.inputQuantite.text().strip()
         heure = self.ui.inputHeureDepart.text().strip()
+        
+        
+
+        if not produit or not quantite or not heure:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Champs manquants",
+                "Veuillez remplir tous les champs."
+            )
+            return
+
+        try:
+            int(quantite)
+        except ValueError:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Erreur",
+                "La quantité doit être un nombre entier."
+            )
+            return
+
+        try:
+            datetime.strptime(heure, "%H:%M")
+        except ValueError:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Erreur",
+                "L'heure doit être au format HH:MM."
+            )
+            return
+
+        date_str = datetime.now().strftime("%Y-%m-%d")
+
+        # vérification automatique : est-ce que ça finit avant la fin de la journée ?
+        exceeds, end_time = command_exceeds_day(produit, date_str, heure)
+
+        if exceeds:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Alerte",
+                f"La commande ne sera pas terminée avant la fin de la journée.\n"
+                f"Heure de fin prévue : {end_time}"
+            )
+            return
+
+        # ici tu gardes ton code actuel pour enregistrer la commande dans la base
+        # exemple :
+        # self.db.add_commande(produit, quantite, heure)
+
+        QtWidgets.QMessageBox.information(
+            self,
+            "Succès",
+            "Commande ajoutée avec succès."
+        )
 
         if not produit or not quantite or not heure:
             QtWidgets.QMessageBox.warning(self, "Erreur", "Tous les champs doivent être remplis.")
@@ -104,9 +214,9 @@ class MainWindow(QtWidgets.QMainWindow):  # je crée la fenêtre principale
 
         self.ui.inputQuantite.clear()
         self.ui.inputHeureDepart.clear()
-        self.load_commandes()    
+        self.load_commandes()
 
-    def load_commandes(self):  # j'affiche les commandes dans la zone texte
+    def load_commandes(self):
         commandes = get_commandes()
         self.ui.textCommandes.clear()
 
@@ -115,6 +225,46 @@ class MainWindow(QtWidgets.QMainWindow):  # je crée la fenêtre principale
             self.ui.textCommandes.append(
                 f"Produit: {produit} | Quantité: {quantite} | Heure de départ: {heure} | Coût unitaire: {cout_unitaire} € | Coût total: {cout_total} €"
             )
+
+    def generate_mails(self):
+        try:
+            send_operator_mails()
+            QtWidgets.QMessageBox.information(
+                self,
+                "Succès",
+                "Mails générés dans le dossier mails/"
+            )
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Erreur",
+                str(e)
+            )
+
+    def check_negative_prices(self):
+        result, data = generate_negative_price_alert_file()
+
+        if isinstance(result, str) and result.startswith("Erreur"):
+            QtWidgets.QMessageBox.critical(self, "Erreur", result)
+            return
+
+        if not data:
+            QtWidgets.QMessageBox.information(self, "Info", "Aucun prix négatif aujourd'hui.")
+            return
+
+        self.ui.tableWidget_negative_prices.setRowCount(len(data))
+        self.ui.tableWidget_negative_prices.setColumnCount(2)
+        self.ui.tableWidget_negative_prices.setHorizontalHeaderLabels(["Heure", "Prix €/MWh"])
+
+        for row, (heure, prix) in enumerate(data):
+            self.ui.tableWidget_negative_prices.setItem(row, 0, QtWidgets.QTableWidgetItem(heure))
+            self.ui.tableWidget_negative_prices.setItem(row, 1, QtWidgets.QTableWidgetItem(str(prix)))
+
+        QtWidgets.QMessageBox.information(
+            self,
+            "Alerte",
+            f"Prix négatifs détectés.\nFichier créé : {result}"
+        )
 
     def show_prices(self):
         plot_prices()

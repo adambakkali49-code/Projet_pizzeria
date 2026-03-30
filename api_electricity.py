@@ -52,3 +52,11 @@ def plot_prices():
     plt.ylabel("Prix (€/MWh)")
     plt.grid()
     plt.show()
+
+
+def get_negative_price():
+        prices=get_prices_series()
+        if prices is None:
+            return None
+        negative_prices = prices[prices<0]
+        return negative_prices

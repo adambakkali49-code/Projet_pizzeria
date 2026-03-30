@@ -1,0 +1,13 @@
+To: sami@email.com
+Subject: Planning opérateur
+
+Bonjour sami,
+
+Voici vos tâches prévues :
+
+- Creamy Chicken | Emballeuse | 15:55 -> 15:57
+- BBQ Chicken | Emballeuse | 06:28 -> 06:30
+- BBQ Chicken | Emballeuse | 15:28 -> 15:30
+- Creamy Chicken | Emballeuse | 06:25 -> 06:27
+- Creamy Chicken | Emballeuse | 15:25 -> 15:27
+- BBQ Chicken | Emballeuse | 17:58 -> 18:00

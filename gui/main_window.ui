@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1029</width>
+    <width>1019</width>
     <height>655</height>
    </rect>
   </property>
@@ -17,14 +17,14 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>0</y>
-      <width>861</width>
+      <x>20</x>
+      <y>10</y>
+      <width>641</width>
       <height>601</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="Configuration">
      <attribute name="title">
@@ -33,8 +33,8 @@
      <widget class="QTextEdit" name="textMachines">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>10</y>
+        <x>0</x>
+        <y>40</y>
         <width>361</width>
         <height>331</height>
        </rect>
@@ -54,8 +54,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
      <widget class="QTextEdit" name="textProduits">
       <property name="geometry">
        <rect>
-        <x>380</x>
-        <y>10</y>
+        <x>400</x>
+        <y>50</y>
         <width>161</width>
         <height>151</height>
        </rect>
@@ -76,7 +76,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>350</y>
+        <y>400</y>
         <width>441</width>
         <height>138</height>
        </rect>
@@ -128,7 +128,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <property name="geometry">
        <rect>
         <x>0</x>
-        <y>490</y>
+        <y>540</y>
         <width>121</width>
         <height>26</height>
        </rect>
@@ -140,14 +140,53 @@ li.checked::marker { content: &quot;\2612&quot;; }
      <widget class="QPushButton" name="btnRefresh">
       <property name="geometry">
        <rect>
-        <x>340</x>
-        <y>490</y>
+        <x>130</x>
+        <y>540</y>
         <width>81</width>
         <height>26</height>
        </rect>
       </property>
       <property name="text">
        <string>Rafraichir</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelDate">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>171</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Date:</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnModifyMachine">
+      <property name="geometry">
+       <rect>
+        <x>220</x>
+        <y>540</y>
+        <width>81</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Modifier</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="btnDeleteMachine">
+      <property name="geometry">
+       <rect>
+        <x>300</x>
+        <y>540</y>
+        <width>141</width>
+        <height>26</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>supprimer</string>
       </property>
      </widget>
     </widget>
@@ -196,24 +235,47 @@ li.checked::marker { content: &quot;\2612&quot;; }
       <item>
        <widget class="QTextEdit" name="textCommandes"/>
       </item>
+      <item>
+       <widget class="QPushButton" name="pushButton_send_mail">
+        <property name="text">
+         <string>envoyer mail à l'operateur</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
     <widget class="QWidget" name="PrixElectricite">
      <attribute name="title">
       <string>Page</string>
      </attribute>
-     <widget class="QPushButton" name="pushButtonPrices">
+     <widget class="QWidget" name="">
       <property name="geometry">
        <rect>
-        <x>110</x>
-        <y>100</y>
-        <width>80</width>
-        <height>24</height>
+        <x>10</x>
+        <y>20</y>
+        <width>541</width>
+        <height>501</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Afficher prix</string>
-      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <widget class="QPushButton" name="pushButtonPrices">
+         <property name="text">
+          <string>afficher graphique de prix</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButton_negative_alert">
+         <property name="text">
+          <string>alerte prix negatif</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="tableWidget_negative_prices"/>
+       </item>
+      </layout>
      </widget>
     </widget>
    </widget>
@@ -223,8 +285,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1029</width>
-     <height>21</height>
+     <width>1019</width>
+     <height>33</height>
     </rect>
    </property>
   </widget>

@@ -1,0 +1,10 @@
+To: adam@email.com
+Subject: Planning opérateur
+
+Bonjour adam,
+
+Voici vos tâches prévues :
+
+- BBQ Chicken | Trancheuse | 06:00 -> 06:03
+- BBQ Chicken | Trancheuse | 15:00 -> 15:03
+- BBQ Chicken | Trancheuse | 17:30 -> 17:33
