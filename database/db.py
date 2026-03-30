@@ -22,6 +22,18 @@ def init_db():  # je crée une fonction pour créer les tables
     """)  # je crée la table produits
 
     cursor.execute("""
+    CREATE TABLE IF NOT EXISTS commandes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        produit_id INTEGER,
+        quantite INTEGER,
+        heure_depart TEXT,
+        cout_unitaire REAL,
+        cout_total REAL
+    )
+    """)  # je crée la table commandes
+
+
+    cursor.execute("""
     CREATE TABLE IF NOT EXISTS etapes_process (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         produit_id INTEGER,
@@ -29,16 +41,7 @@ def init_db():  # je crée une fonction pour créer les tables
         ordre INTEGER,
         duree_minutes INTEGER
     )
-    """)  # je crée la table des étapes
-
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS commandes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        produit_id INTEGER,
-        quantite INTEGER,
-        heure_depart TEXT
-    )
-    """)  # je crée la table commandes
+    """)
 
     conn.commit()  # je sauvegarde
     conn.close()  # je ferme la base
@@ -182,7 +185,63 @@ def add_machine(nom, puissance, operateur, email):  # fonction pour ajouter une 
         (nom, puissance, operateur, email)
     )  # j'insère une nouvelle machine
 
+
     conn.commit()  # je sauvegarde les changements
     conn.close()  # je ferme la base
 
-    
+def add_commande(produit_nom, quantite, heure_depart, cout_unitaire, cout_total):  # ajoute une commande dans la base
+    conn = sqlite3.connect("pizzeria.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT id FROM produits WHERE nom = ?", (produit_nom,))
+    resultat = cursor.fetchone()
+
+    if resultat is None:
+        conn.close()
+        return
+
+    produit_id = resultat[0]
+
+    cursor.execute(
+        """
+        INSERT INTO commandes (produit_id, quantite, heure_depart, cout_unitaire, cout_total)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (produit_id, quantite, heure_depart, cout_unitaire, cout_total)
+    )
+
+    conn.commit()
+    conn.close()
+
+def get_commandes():  # récupère les commandes avec le nom du produit et les coûts
+    conn = sqlite3.connect("pizzeria.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT produits.nom, commandes.quantite, commandes.heure_depart,
+               commandes.cout_unitaire, commandes.cout_total
+        FROM commandes
+        JOIN produits ON commandes.produit_id = produits.id
+    """)
+
+    commandes = cursor.fetchall()
+    conn.close()
+    return commandes 
+
+
+def get_etapes_for_produit(produit_nom):  # récupère les étapes d'un produit avec machine, puissance et durée
+    conn = sqlite3.connect("pizzeria.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT machines.nom, machines.puissance_w, etapes_process.duree_minutes
+        FROM etapes_process
+        JOIN produits ON etapes_process.produit_id = produits.id
+        JOIN machines ON etapes_process.machine_id = machines.id
+        WHERE produits.nom = ?
+        ORDER BY etapes_process.ordre
+    """, (produit_nom,))
+
+    etapes = cursor.fetchall()
+    conn.close()
+    return etapes
